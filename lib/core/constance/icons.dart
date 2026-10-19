@@ -1,5 +1,5 @@
 class ConstIcons {
-  static const appIcon = "assets/images/deshi_logo.png";
+  static const appIcon = "assets/icons/appiconplus.png";
 
   static const villageHome = "assets/icons/villageHome.png";
   static const accountIcon = "assets/icons/accountIcon.png";
@@ -12,4 +12,6 @@ class ConstIcons {
   static const locationIcon = "assets/icons/locationIcon.png";
   static const chekenIcon = "assets/icons/chekenIcon.png";
   static const duckIcon = "assets/icons/duckIcon.png";
+    static const chickenImage= "assets/images/murghi.png";
+    static const duckImage= "assets/images/hash.png";
 }

@@ -12,6 +12,7 @@ class Orders extends Table {
   TextColumn get address => text().withLength(min: 1, max: 100)();
   TextColumn get phone => text().withLength(min: 1, max: 20)();
   TextColumn get status => text()();
+  TextColumn get deliveryTimeline => text().nullable()();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
   @override
   Set<Column> get primaryKey => {id};
@@ -31,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
       );
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   //migration here
   @override
@@ -49,6 +50,9 @@ class AppDatabase extends _$AppDatabase {
       if (from < 5) {
         await m.addColumn(orders, orders.syncStatus);
       }
+      if (from < 6) {
+        await m.addColumn(orders, orders.deliveryTimeline);
+      }
     },
   );
 
@@ -62,6 +66,7 @@ class AppDatabase extends _$AppDatabase {
     required String address,
     required String status,
     required String phone,
+    String? deliveryTimeline,
   }) async {
     final id = DateTime.now().microsecondsSinceEpoch.toString();
     await into(orders).insert(
@@ -75,6 +80,7 @@ class AppDatabase extends _$AppDatabase {
         address: address,
         status: status,
         phone: phone,
+        deliveryTimeline: Value(deliveryTimeline),
       ),
     );
     return id;

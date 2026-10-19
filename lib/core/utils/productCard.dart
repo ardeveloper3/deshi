@@ -70,7 +70,7 @@ class _ProductCardState extends State<ProductCard> {
                 children: [
                   AspectRatio(
                     aspectRatio: 1.70,
-                    child: Image.network(
+                    child: Image.asset(
                       widget.imageUrl,
                       width: double.infinity,
                       fit: BoxFit.cover,

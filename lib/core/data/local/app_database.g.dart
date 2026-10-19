@@ -117,6 +117,17 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _deliveryTimelineMeta = const VerificationMeta(
+    'deliveryTimeline',
+  );
+  @override
+  late final GeneratedColumn<String> deliveryTimeline = GeneratedColumn<String>(
+    'delivery_timeline',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _syncStatusMeta = const VerificationMeta(
     'syncStatus',
   );
@@ -140,6 +151,7 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     address,
     phone,
     status,
+    deliveryTimeline,
     syncStatus,
   ];
   @override
@@ -229,6 +241,15 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
     } else if (isInserting) {
       context.missing(_statusMeta);
     }
+    if (data.containsKey('delivery_timeline')) {
+      context.handle(
+        _deliveryTimelineMeta,
+        deliveryTimeline.isAcceptableOrUnknown(
+          data['delivery_timeline']!,
+          _deliveryTimelineMeta,
+        ),
+      );
+    }
     if (data.containsKey('sync_status')) {
       context.handle(
         _syncStatusMeta,
@@ -280,6 +301,10 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, Order> {
         DriftSqlType.string,
         data['${effectivePrefix}status'],
       )!,
+      deliveryTimeline: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}delivery_timeline'],
+      ),
       syncStatus: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}sync_status'],
@@ -303,6 +328,7 @@ class Order extends DataClass implements Insertable<Order> {
   final String address;
   final String phone;
   final String status;
+  final String? deliveryTimeline;
   final String syncStatus;
   const Order({
     required this.id,
@@ -314,6 +340,7 @@ class Order extends DataClass implements Insertable<Order> {
     required this.address,
     required this.phone,
     required this.status,
+    this.deliveryTimeline,
     required this.syncStatus,
   });
   @override
@@ -328,6 +355,9 @@ class Order extends DataClass implements Insertable<Order> {
     map['address'] = Variable<String>(address);
     map['phone'] = Variable<String>(phone);
     map['status'] = Variable<String>(status);
+    if (!nullToAbsent || deliveryTimeline != null) {
+      map['delivery_timeline'] = Variable<String>(deliveryTimeline);
+    }
     map['sync_status'] = Variable<String>(syncStatus);
     return map;
   }
@@ -343,6 +373,9 @@ class Order extends DataClass implements Insertable<Order> {
       address: Value(address),
       phone: Value(phone),
       status: Value(status),
+      deliveryTimeline: deliveryTimeline == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deliveryTimeline),
       syncStatus: Value(syncStatus),
     );
   }
@@ -362,6 +395,7 @@ class Order extends DataClass implements Insertable<Order> {
       address: serializer.fromJson<String>(json['address']),
       phone: serializer.fromJson<String>(json['phone']),
       status: serializer.fromJson<String>(json['status']),
+      deliveryTimeline: serializer.fromJson<String?>(json['deliveryTimeline']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
     );
   }
@@ -378,6 +412,7 @@ class Order extends DataClass implements Insertable<Order> {
       'address': serializer.toJson<String>(address),
       'phone': serializer.toJson<String>(phone),
       'status': serializer.toJson<String>(status),
+      'deliveryTimeline': serializer.toJson<String?>(deliveryTimeline),
       'syncStatus': serializer.toJson<String>(syncStatus),
     };
   }
@@ -392,6 +427,7 @@ class Order extends DataClass implements Insertable<Order> {
     String? address,
     String? phone,
     String? status,
+    Value<String?> deliveryTimeline = const Value.absent(),
     String? syncStatus,
   }) => Order(
     id: id ?? this.id,
@@ -403,6 +439,9 @@ class Order extends DataClass implements Insertable<Order> {
     address: address ?? this.address,
     phone: phone ?? this.phone,
     status: status ?? this.status,
+    deliveryTimeline: deliveryTimeline.present
+        ? deliveryTimeline.value
+        : this.deliveryTimeline,
     syncStatus: syncStatus ?? this.syncStatus,
   );
   Order copyWithCompanion(OrdersCompanion data) {
@@ -420,6 +459,9 @@ class Order extends DataClass implements Insertable<Order> {
       address: data.address.present ? data.address.value : this.address,
       phone: data.phone.present ? data.phone.value : this.phone,
       status: data.status.present ? data.status.value : this.status,
+      deliveryTimeline: data.deliveryTimeline.present
+          ? data.deliveryTimeline.value
+          : this.deliveryTimeline,
       syncStatus: data.syncStatus.present
           ? data.syncStatus.value
           : this.syncStatus,
@@ -438,6 +480,7 @@ class Order extends DataClass implements Insertable<Order> {
           ..write('address: $address, ')
           ..write('phone: $phone, ')
           ..write('status: $status, ')
+          ..write('deliveryTimeline: $deliveryTimeline, ')
           ..write('syncStatus: $syncStatus')
           ..write(')'))
         .toString();
@@ -454,6 +497,7 @@ class Order extends DataClass implements Insertable<Order> {
     address,
     phone,
     status,
+    deliveryTimeline,
     syncStatus,
   );
   @override
@@ -469,6 +513,7 @@ class Order extends DataClass implements Insertable<Order> {
           other.address == this.address &&
           other.phone == this.phone &&
           other.status == this.status &&
+          other.deliveryTimeline == this.deliveryTimeline &&
           other.syncStatus == this.syncStatus);
 }
 
@@ -482,6 +527,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
   final Value<String> address;
   final Value<String> phone;
   final Value<String> status;
+  final Value<String?> deliveryTimeline;
   final Value<String> syncStatus;
   final Value<int> rowid;
   const OrdersCompanion({
@@ -494,6 +540,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     this.address = const Value.absent(),
     this.phone = const Value.absent(),
     this.status = const Value.absent(),
+    this.deliveryTimeline = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -507,6 +554,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     required String address,
     required String phone,
     required String status,
+    this.deliveryTimeline = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -528,6 +576,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     Expression<String>? address,
     Expression<String>? phone,
     Expression<String>? status,
+    Expression<String>? deliveryTimeline,
     Expression<String>? syncStatus,
     Expression<int>? rowid,
   }) {
@@ -541,6 +590,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
       if (address != null) 'address': address,
       if (phone != null) 'phone': phone,
       if (status != null) 'status': status,
+      if (deliveryTimeline != null) 'delivery_timeline': deliveryTimeline,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (rowid != null) 'rowid': rowid,
     });
@@ -556,6 +606,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     Value<String>? address,
     Value<String>? phone,
     Value<String>? status,
+    Value<String?>? deliveryTimeline,
     Value<String>? syncStatus,
     Value<int>? rowid,
   }) {
@@ -569,6 +620,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
       address: address ?? this.address,
       phone: phone ?? this.phone,
       status: status ?? this.status,
+      deliveryTimeline: deliveryTimeline ?? this.deliveryTimeline,
       syncStatus: syncStatus ?? this.syncStatus,
       rowid: rowid ?? this.rowid,
     );
@@ -604,6 +656,9 @@ class OrdersCompanion extends UpdateCompanion<Order> {
     if (status.present) {
       map['status'] = Variable<String>(status.value);
     }
+    if (deliveryTimeline.present) {
+      map['delivery_timeline'] = Variable<String>(deliveryTimeline.value);
+    }
     if (syncStatus.present) {
       map['sync_status'] = Variable<String>(syncStatus.value);
     }
@@ -625,6 +680,7 @@ class OrdersCompanion extends UpdateCompanion<Order> {
           ..write('address: $address, ')
           ..write('phone: $phone, ')
           ..write('status: $status, ')
+          ..write('deliveryTimeline: $deliveryTimeline, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -653,6 +709,7 @@ typedef $$OrdersTableCreateCompanionBuilder = OrdersCompanion Function({
   required String address,
   required String phone,
   required String status,
+  Value<String?> deliveryTimeline,
   Value<String> syncStatus,
   Value<int> rowid,
 });
@@ -666,6 +723,7 @@ typedef $$OrdersTableUpdateCompanionBuilder = OrdersCompanion Function({
   Value<String> address,
   Value<String> phone,
   Value<String> status,
+  Value<String?> deliveryTimeline,
   Value<String> syncStatus,
   Value<int> rowid,
 });
@@ -721,6 +779,11 @@ class $$OrdersTableFilterComposer
 
   ColumnFilters<String> get status => $composableBuilder(
     column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get deliveryTimeline => $composableBuilder(
+    column: $table.deliveryTimeline,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -784,6 +847,11 @@ class $$OrdersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get deliveryTimeline => $composableBuilder(
+    column: $table.deliveryTimeline,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get syncStatus => $composableBuilder(
     column: $table.syncStatus,
     builder: (column) => ColumnOrderings(column),
@@ -830,6 +898,11 @@ class $$OrdersTableAnnotationComposer
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
+  GeneratedColumn<String> get deliveryTimeline => $composableBuilder(
+    column: $table.deliveryTimeline,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get syncStatus => $composableBuilder(
     column: $table.syncStatus,
     builder: (column) => column,
@@ -873,6 +946,7 @@ class $$OrdersTableTableManager
                 Value<String> address = const Value.absent(),
                 Value<String> phone = const Value.absent(),
                 Value<String> status = const Value.absent(),
+                Value<String?> deliveryTimeline = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrdersCompanion(
@@ -885,6 +959,7 @@ class $$OrdersTableTableManager
                 address: address,
                 phone: phone,
                 status: status,
+                deliveryTimeline: deliveryTimeline,
                 syncStatus: syncStatus,
                 rowid: rowid,
               ),
@@ -899,6 +974,7 @@ class $$OrdersTableTableManager
                 required String address,
                 required String phone,
                 required String status,
+                Value<String?> deliveryTimeline = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrdersCompanion.insert(
@@ -911,6 +987,7 @@ class $$OrdersTableTableManager
                 address: address,
                 phone: phone,
                 status: status,
+                deliveryTimeline: deliveryTimeline,
                 syncStatus: syncStatus,
                 rowid: rowid,
               ),

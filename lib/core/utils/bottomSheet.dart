@@ -84,6 +84,7 @@ class _BottomsheetState extends State<Bottomsheet> {
 
       final missingFields = <String>[
         if (_weight == null) 'ওজন',
+        if (_deliveryTime == null) 'ডেলিভারি সময়',
         if (_nameController.text.trim().isEmpty) 'আপনার নাম',
         if (_phoneController.text.trim().isEmpty) 'মোবাইল নম্বর',
         if (_districtController.text.trim().isEmpty) 'জেলা',
@@ -121,6 +122,7 @@ class _BottomsheetState extends State<Bottomsheet> {
           address: address,
           phone: _phoneController.text.trim(),
           status: 'pending',
+          deliveryTimeline: _deliveryTime,
         );
       } on Exception catch (error) {
         if (!mounted) return;

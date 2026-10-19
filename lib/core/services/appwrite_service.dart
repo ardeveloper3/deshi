@@ -323,6 +323,7 @@ class AppwriteService {
     required String address,
     required String phone,
     required String customerName,
+    String? deliveryTimeline,
   }) async {
     try {
       final user = await ensureUser();
@@ -347,6 +348,7 @@ class AppwriteService {
           'address': address,
           'phone': phone,
           'customerName': customerName,
+          'deliveryTimeline': deliveryTimeline ?? '',
         },
       );
     } on AppwriteException catch (error) {
@@ -370,6 +372,7 @@ class AppwriteService {
           address: order.address,
           phone: order.phone,
           customerName: order.customerName,
+          deliveryTimeline: order.deliveryTimeline,
         );
         await appDatabase.markOrderSynced(order.id);
       } on AppwriteException catch (error) {

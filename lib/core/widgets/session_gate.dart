@@ -54,7 +54,7 @@ class _SessionGateState extends State<SessionGate> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Image.asset(
-                    "assets/images/deshi_logo.png",
+                    "assets/icons/appiconplus.png",
                     height: 92,
                     width: 92,
                   ),

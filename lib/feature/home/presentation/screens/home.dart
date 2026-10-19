@@ -213,44 +213,6 @@ class _HomeState extends State<Home> {
             },
             icon: const Icon(Icons.person_outline),
           ),
-          IconButton(
-            tooltip: 'স্থানীয় অর্ডার',
-            onPressed: () {
-              Navigator.of(context).push(
-                PageRouteBuilder<void>(
-                  pageBuilder: (context, animation, secondaryAnimation) =>
-                      const OrdersScreen(),
-                  transitionDuration: const Duration(milliseconds: 420),
-                  reverseTransitionDuration: const Duration(milliseconds: 300),
-                  transitionsBuilder:
-                      (context, animation, secondaryAnimation, child) {
-                        final curved = CurvedAnimation(
-                          parent: animation,
-                          curve: Curves.easeOutCubic,
-                        );
-                        return FadeTransition(
-                          opacity: curved,
-                          child: SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0.08, 0),
-                              end: Offset.zero,
-                            ).animate(curved),
-                            child: child,
-                          ),
-                        );
-                      },
-                ),
-              );
-            },
-            icon: const Icon(Icons.receipt_long_outlined),
-          ),
-          if (_appwriteStatus != null)
-            Tooltip(
-              message: _appwriteStatus!,
-              child: const Icon(Icons.info_outline, size: 20),
-            ),
-          Image.asset(ConstIcons.accountIcon, width: 40, height: 40),
-          SizedBox(width: 10),
         ],
       ),
       body: LayoutBuilder(
@@ -432,7 +394,7 @@ class _HomeState extends State<Home> {
                               ),
                             ),
                             Text(
-                              "গ্রামের পরিবার ও ছোট খামার থেকে সংগ্রহ করে আপনার বাসায় পৌঁছে দিই।",
+                              "গ্রামের ছোট পরিবার থেকে সংগ্রহ করে আপনার বাসায় পৌঁছে দিই।",
                               style: TextConst.body.copyWith(
                                 color: Colors.white,
                               ),
@@ -514,10 +476,18 @@ class _HomeState extends State<Home> {
                                         'weight',
                                       );
 
+                                      // Determine image based on product name
+                                      final lowerName = name.toLowerCase();
+                                      final productImage = (lowerName.contains('murghi') || name.contains('মুরগি'))
+                                          ? ConstIcons.chickenImage
+                                          : (lowerName.contains('hash') || name.contains('হাঁস'))
+                                              ? ConstIcons.duckImage
+                                              : ConstIcons.chickenImage; // Default to chicken if no match
+
                                       return SizedBox(
                                         width: isWide ? 280 : 260,
                                         child: ProductCard(
-                                          imageUrl: 'https://5.imimg.com/data5/ANDROID/Default/2023/1/AZ/KP/JE/144793528/product-jpeg-500x500.jpg',
+                                          imageUrl: productImage,
                                           productName: name.isEmpty
                                               ? 'দেশি পণ্য'
                                               : name,
@@ -689,7 +659,7 @@ class _HomeState extends State<Home> {
                                     ],
                                   ),
                                   Text(
-                                    "গ্রামের পরিবার ও ছোট খামার থেকে সংগ্রহ করে সরাসরি আপনার বাসায় পৌঁছে দিই।",
+                                    "গ্রামের ছোট  পরিবার থেকে সংগ্রহ করে সরাসরি আপনার বাসায় পৌঁছে দিই।",
                                     style: TextConst.body.copyWith(
                                       color: Colors.white,
                                     ),
@@ -750,41 +720,83 @@ class _HomeState extends State<Home> {
             return const SizedBox.shrink();
           }
           return SafeArea(
-            child: Container(
-              padding: EdgeInsets.all(10),
-              color: Colors.white,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: ColorConst.darkGreenColor,
-                        borderRadius: BorderRadius.circular(20),
+            child: FutureBuilder<List<models.Row>>(
+              future: _productsFuture,
+              builder: (context, snapshot) {
+                final products = snapshot.data ?? [];
+
+                void handleOrderTap(bool isChicken) {
+                  if (products.isEmpty) {
+                    OpeanBottomSheet(
+                      productName: isChicken ? 'মুরগি' : 'হাঁস',
+                    );
+                    return;
+                  }
+
+                  try {
+                    final found = products.firstWhere((p) {
+                      final name = _productValue(p, 'productName').toLowerCase();
+                      if (isChicken) {
+                        return name.contains('murghi') || name.contains('murgi') || name.contains('মুরগি');
+                      } else {
+                        return name.contains('hash') || name.contains('হাঁস');
+                      }
+                    }, orElse: () => products.first);
+
+                    OpeanBottomSheet(
+                      productName: _productValue(found, 'productName'),
+                      productPrice: _productValue(found, 'price'),
+                    );
+                  } catch (e) {
+                    OpeanBottomSheet(
+                      productName: isChicken ? 'মুরগি' : 'হাঁস',
+                    );
+                  }
+                }
+
+                return Container(
+                  padding: const EdgeInsets.all(10),
+                  color: Colors.white,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => handleOrderTap(true),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: ColorConst.darkGreenColor,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: infoTile(
+                              icon: ConstIcons.chekenIcon,
+                              title: "মুরগি অর্ডার করুন",
+                            ),
+                          ),
+                        ),
                       ),
-                      child: infoTile(
-                        icon: ConstIcons.chekenIcon,
-                        title: "মুরগি  অর্ডার করুন",
+                      const SizedBox(width: 5),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => handleOrderTap(false),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: ColorConst.lightGreen,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: infoTile(
+                              icon: ConstIcons.duckIcon,
+                              title: "হাঁস অর্ডার করুন",
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                  SizedBox(width: 5),
-                  Expanded(
-                    child: Container(
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: ColorConst.lightGreen,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: infoTile(
-                        icon: ConstIcons.duckIcon,
-                        title: " হাঁস অর্ডার করুন",
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
           );
         },
