@@ -450,21 +450,49 @@ class _BottomsheetState extends State<Bottomsheet> {
   }
 
   Widget _deliveryDetailsStep() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionTitle('ডেলিভারির তথ্য'),
-        _field('আপনার নাম *', 'পূর্ণ নাম', _nameController),
-        _field('মোবাইল নম্বর *', '01XXXXXXXXX', _phoneController),
-        _field('জেলা *', 'যেমন: ঢাকা', _districtController),
-        _field('এলাকা *', 'থানা / উপজেলা', _areaController),
-        _field(
-          'সম্পূর্ণ ঠিকানা *',
-          'বাড়ি নং, রোড, মহল্লা',
-          _addressController,
-        ),
-        _summary(),
-      ],
+    return AutofillGroup(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionTitle('ডেলিভারির তথ্য'),
+          _field(
+            'আপনার নাম *',
+            'পূর্ণ নাম',
+            _nameController,
+            autofillHints: const [AutofillHints.name],
+          ),
+          _field(
+            'মোবাইল নম্বর *',
+            '01XXXXXXXXX',
+            _phoneController,
+            autofillHints: const [AutofillHints.telephoneNumber],
+            keyboardType: TextInputType.phone,
+          ),
+          _field(
+            'জেলা *',
+            'যেমন: ঢাকা',
+            _districtController,
+            autofillHints: const [AutofillHints.addressCity],
+          ),
+          _field(
+            'এলাকা *',
+            'থানা / উপজেলা',
+            _areaController,
+            autofillHints: const [AutofillHints.sublocality],
+          ),
+          _field(
+            'সম্পূর্ণ ঠিকানা *',
+            'বাড়ি নং, রোড, মহল্লা',
+            _addressController,
+            autofillHints: const [
+              AutofillHints.addressCity,
+              AutofillHints.sublocality,
+              AutofillHints.streetAddressLine1,
+            ],
+          ),
+          _summary(),
+        ],
+      ),
     );
   }
 
@@ -516,7 +544,13 @@ class _BottomsheetState extends State<Bottomsheet> {
     );
   }
 
-  Widget _field(String label, String hint, TextEditingController controller) {
+  Widget _field(
+    String label,
+    String hint,
+    TextEditingController controller, {
+    Iterable<String>? autofillHints,
+    TextInputType? keyboardType,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Column(
@@ -529,6 +563,8 @@ class _BottomsheetState extends State<Bottomsheet> {
           const SizedBox(height: 4),
           TextField(
             controller: controller,
+            autofillHints: autofillHints,
+            keyboardType: keyboardType,
             decoration: InputDecoration(
               hintText: hint,
               isDense: true,
